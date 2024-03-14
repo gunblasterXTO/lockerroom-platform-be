@@ -1,0 +1,54 @@
+name: On Push
+on:
+  push:
+    branches: "*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up environment variables
+        env:
+          ALGORITHM: ${{ secrets.ALGORITHM }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: |
+          echo "ALGORITHM=${ALGORITHM}" >> .env
+          echo "SECRET_KEY=${SECRET_KEY}" >> .env
+
+      - name: Check environment variables
+        run: cat .env
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --no-root
+
+      - name: Run tests with coverage
+        run: |
+          poetry run coverage run -m pytest
+          poetry run coverage report -m
+
+      - name: Check coverage threshold
+        run: |
+          COVERAGE_THRESHOLD=80
+          COVERAGE_PERCENTAGE=$(poetry run coverage report -m | grep -oP '\d+\%')
+          if [ "${COVERAGE_PERCENTAGE%\%}" -lt "$COVERAGE_THRESHOLD" ]; then
+            echo "Coverage is below threshold: $COVERAGE_PERCENTAGE, expected at least $COVERAGE_THRESHOLD"
+            exit 1
+          fi
+
+      - name: Security scanning
+        run: poetry run bandit -r ./app

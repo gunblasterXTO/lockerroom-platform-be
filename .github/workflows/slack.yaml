@@ -1,0 +1,44 @@
+name: Slack Bot
+on:
+  push:
+  pull_request:
+  issues:
+    types:
+      - opened
+      - closed
+      - reopened
+      - edited
+      - deleted
+      - pinned
+      - unpinned
+      - assigned
+      - unassigned
+  issue_comment:
+    types: [created, edited, deleted]
+  create:
+  delete:
+
+jobs:
+  notify_slack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract branch name
+        id: extract-branch
+        run: echo "::set-output name=branch::${GITHUB_REF##refs/heads/}"
+      - name: Send Slack Notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom  # enable custom payload for self defined content
+          fields: repo,commit,event,action,workflow,ref,URL
+          custom_payload: |
+            {
+              "attachments": [
+                {
+                  "color": "${{ job.status }}",
+                  "title": ":shipit: ${{ github.actor }} ${{ github.event.pull_request && github.event.pull_request.merged == true && 'merged a pull request' || github.event.pull_request && 'opened a pull request' || github.event_name == 'push' && 'pushed new changes' || github.event_name == 'create' && 'created a new branch or tag' || github.event_name == 'delete' && 'deleted a branch or tag' || github.event_name == 'issues' && github.event.action || 'triggered an event' }}",
+                  "text": "- Repository: ${{ github.repository }}\n- Branch: ${{ steps.extract-branch.outputs.branch }}\n- Message: ${{ github.event_name == 'push' && github.event.head_commit.message || github.event_name == 'issues' && github.event.issue.title || github.event_name == 'pull_request' && github.event.pull_request.title || '' }}\n- Link: ${{ github.event.pull_request.html_url || github.event.issue.html_url || github.event.repository.html_url }}"
+                }
+              ]
+            }
