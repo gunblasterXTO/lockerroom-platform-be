@@ -10,7 +10,7 @@ load_dotenv(dotenv_path=env_path)
 
 
 class Settings:
-    PROJECT_NAME = "Base FastAPI Project"
+    PROJECT_NAME = "lockerroom platform"
     VERSION = "0.1.0"
 
     # log

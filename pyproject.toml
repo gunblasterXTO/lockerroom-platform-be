@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "base-fastapi"
+name = "lockerroom-platform-be"
 version = "0.1.0"
-description = "This is a base project structure for fastapi"
+description = "This is backend repository for lockerroom platform."
 authors = ["gunblasterXTO"]
 readme = "README.md"
 

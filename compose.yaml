@@ -9,8 +9,8 @@ version: '3'
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
-  fastapi-app:
-    container_name: fastapi-container
+  backend:
+    container_name: lockerroom-platform-be
     build:
       context: .
     ports:

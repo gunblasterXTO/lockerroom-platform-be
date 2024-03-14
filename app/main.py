@@ -3,7 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.core.settings import Settings
-from app.helpers.response import BaseFailResponse, BaseSuccessResponse
+from app.helpers.response import BaseFailResponse
 from app.middleware import Middlewares
 from app.v1 import v1_router
 
