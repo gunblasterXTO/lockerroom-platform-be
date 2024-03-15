@@ -31,10 +31,10 @@ class SecurityMiddleware:
         """
         sub_id, sub, session_id = "", "", ""
         if (
-            path == "/"
-            or ExcludeAuthMiddlewarePath.REGISTER.value in path
+            ExcludeAuthMiddlewarePath.REGISTER.value in path
             or ExcludeAuthMiddlewarePath.LOGIN.value in path
             or ExcludeAuthMiddlewarePath.DOCS.value in path
+            or ExcludeAuthMiddlewarePath.HEALTH_CHECK.value in path
         ):
             return sub_id, sub, session_id
 

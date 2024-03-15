@@ -27,3 +27,4 @@ class ExcludeAuthMiddlewarePath(Enum):
     DOCS = "/docs"
     LOGIN = "/login"
     REGISTER = "/register"
+    HEALTH_CHECK = "/health"
