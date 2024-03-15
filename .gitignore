@@ -11,6 +11,7 @@ __pycache__/
 
 # migration
 alembic/versions
+alembic.ini
 
 # Distribution / packaging
 .Python
