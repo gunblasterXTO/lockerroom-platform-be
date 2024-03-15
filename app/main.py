@@ -1,6 +1,7 @@
 from fastapi import FastAPI, status, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.settings import Settings
@@ -23,14 +24,17 @@ async def health_check() -> Response:
 @app.get("/health/db", include_in_schema=False)
 async def health_check_db() -> Response:
     try:
-        Database().session().connection()
+        sess = Database().session()
+        sess.execute(text("SELECT 1"))
     except SQLAlchemyError as err:
         return Response(
             content=f"DB encounter issue: {err}",
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
     else:
         return Response(content="DB is working")
+    finally:
+        sess.close()
 
 
 @app.exception_handler(RequestValidationError)
