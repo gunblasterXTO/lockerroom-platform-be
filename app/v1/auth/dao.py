@@ -4,7 +4,7 @@
 from typing import List, Optional, Union
 
 from app.db import Session
-from app.db.models.user_mgmt import Sessions, Users
+from app.db.models.user_mgmt import Sessions, Platform_Users
 from app.helpers.logger import logger
 from app.v1.auth.dto import RegisterRequestDTO
 
@@ -16,7 +16,7 @@ class UserDAO:
     @staticmethod
     def get_user_by_username(
         username: str, db_sess: Session
-    ) -> Optional[Users]:
+    ) -> Optional[Platform_Users]:
         """
         Get user data from username.
 
@@ -27,13 +27,17 @@ class UserDAO:
         Return:
             - user_obj: user object if any
         """
-        user = db_sess.query(Users).filter(Users.username == username).first()
+        user = (
+            db_sess.query(Platform_Users)
+            .filter(Platform_Users.username == username)
+            .first()
+        )
         return user
 
     @staticmethod
     def create_new_user(
         new_user: RegisterRequestDTO, db_sess: Session
-    ) -> Optional[Users]:
+    ) -> Optional[Platform_Users]:
         """
         Create new user record.
 
@@ -49,7 +53,7 @@ class UserDAO:
             "email": new_user.email,
             "pass_hash": new_user.password,
         }
-        new_user_obj = Users(**new_user_dict)
+        new_user_obj = Platform_Users(**new_user_dict)
         db_sess.add(new_user_obj)
 
         try:

@@ -14,7 +14,7 @@ from passlib.context import CryptContext
 
 from app.core.settings import Settings
 from app.db import Session
-from app.db.models.user_mgmt import Sessions, Users
+from app.db.models.user_mgmt import Sessions, Platform_Users
 from app.helpers.exceptions import (
     credentials_exception,
     internal_exception,
@@ -93,7 +93,7 @@ class AuthService:
 
         token_data = TokenDataDTO(
             sub=str(user_db.username),
-            sub_id=str(user_db.id_hash),
+            sub_id=str(user_db.hash_id),
             session=session_id,
         )
         access_token = self.create_access_token(data=token_data)
@@ -228,7 +228,7 @@ class AuthService:
 
     def authenticate_user(
         self, user: LoginRequestDTO, db_sess: Session
-    ) -> Optional[Users]:
+    ) -> Optional[Platform_Users]:
         """
         Authenticate user by its credentials.
 

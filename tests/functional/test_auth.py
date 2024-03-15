@@ -4,7 +4,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app import app
-from app.db.models.user_mgmt import Users
+from app.db.models.user_mgmt import Platform_Users
 from app.db.session import Database
 
 client = TestClient(app)
@@ -33,8 +33,8 @@ class TestAuthRoutes:
 
         with db.session() as db_sess:
             (
-                db_sess.query(Users)
-                .filter(Users.username == json_body["username"])
+                db_sess.query(Platform_Users)
+                .filter(Platform_Users.username == json_body["username"])
                 .delete()
             )
             db_sess.commit()
