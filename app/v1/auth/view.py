@@ -5,8 +5,8 @@ from fastapi.responses import JSONResponse, Response
 from app.db import db, Session
 from app.helpers.logger import logger
 from app.helpers.response import PostSuccessResponse
-from app.v1.auth.dao import SessionDAO, UserDAO
-from app.v1.auth.dto import LoginRequestDTO, RegisterRequestDTO
+from app.v1.auth.repository import SessionDAO, UserDAO
+from app.v1.auth.dto import LoginRequest, RegisterRequest
 from app.v1.auth.service import AuthService, SessionService
 
 session_service = SessionService(session_dao=SessionDAO())
@@ -16,7 +16,7 @@ auth_service = AuthService(session_service=session_service, user_dao=UserDAO())
 class AuthViews:
     async def registration(
         self,
-        user: RegisterRequestDTO,
+        user: RegisterRequest,
         db_sess: Session = Depends(db.get_session),
     ) -> JSONResponse:
         """
@@ -30,7 +30,7 @@ class AuthViews:
         )
 
     async def login(
-        self, user: LoginRequestDTO, db_sess: Session = Depends(db.get_session)
+        self, user: LoginRequest, db_sess: Session = Depends(db.get_session)
     ) -> JSONResponse:
         """
         Login user if the related information is correct.

@@ -23,13 +23,13 @@ from app.helpers.exceptions import (
     uname_pwd_exception,
 )
 from app.helpers.logger import logger
-from app.v1.auth.dao import SessionDAO, UserDAO
+from app.v1.auth.repository import SessionDAO, UserDAO
 from app.v1.auth.dto import (
-    LoginRequestDTO,
-    LoginResponseDTO,
-    RegisterRequestDTO,
-    RegisterResponseDTO,
-    TokenDataDTO,
+    LoginRequest,
+    LoginResponse,
+    RegisterRequest,
+    RegisterResponse,
+    TokenData,
 )
 
 
@@ -41,8 +41,8 @@ class AuthService:
         self.user_dao = user_dao
 
     def register_new_user(
-        self, new_user: RegisterRequestDTO, db_sess: Session
-    ) -> RegisterResponseDTO:
+        self, new_user: RegisterRequest, db_sess: Session
+    ) -> RegisterResponse:
         """
         Register new user.
 
@@ -66,11 +66,11 @@ class AuthService:
         if not user_db:
             raise internal_exception
 
-        return RegisterResponseDTO(username=str(user_db.username))
+        return RegisterResponse(username=str(user_db.username))
 
     def login_user(
-        self, user: LoginRequestDTO, db_sess: Session
-    ) -> LoginResponseDTO:
+        self, user: LoginRequest, db_sess: Session
+    ) -> LoginResponse:
         """
         Ensure user credentials are valid and return bearer token.
 
@@ -79,7 +79,7 @@ class AuthService:
             - db_sess
 
         Return:
-            - LoginResponseDTO
+            - LoginResponse
         """
         user_db = self.authenticate_user(user, db_sess)
         if not user_db:
@@ -91,13 +91,13 @@ class AuthService:
         if session_id is None:
             raise internal_exception
 
-        token_data = TokenDataDTO(
+        token_data = TokenData(
             sub=str(user_db.username),
             sub_id=str(user_db.hash_id),
             session=session_id,
         )
         access_token = self.create_access_token(data=token_data)
-        return LoginResponseDTO(access_token=access_token)
+        return LoginResponse(access_token=access_token)
 
     def logout_user(
         self, username: str, session: str, db_sess: Session
@@ -125,7 +125,7 @@ class AuthService:
 
     def create_access_token(
         self,
-        data: TokenDataDTO,
+        data: TokenData,
         exp_delta: timedelta = timedelta(minutes=Settings.TOKEN_EXP_MINUTES),
     ) -> str:
         """
@@ -145,7 +145,7 @@ class AuthService:
         )
         return encoded_jwt
 
-    def verify_token(self, token: str) -> TokenDataDTO:
+    def verify_token(self, token: str) -> TokenData:
         """
         Parse access token detail.
 
@@ -171,12 +171,10 @@ class AuthService:
             logger.debug(f"Fail to decode JWT token ({token}): {exc}")
             raise internal_exception
 
-        token_data = TokenDataDTO(**payload)
+        token_data = TokenData(**payload)
         return token_data
 
-    def validate_session(
-        self, token: TokenDataDTO, db_sess: Session
-    ) -> Sessions:
+    def validate_session(self, token: TokenData, db_sess: Session) -> Sessions:
         """
         Check whether session is exist in db or not.
 
@@ -227,7 +225,7 @@ class AuthService:
         return self.pwd_context.verify(plain_pass, hashed_pass)
 
     def authenticate_user(
-        self, user: LoginRequestDTO, db_sess: Session
+        self, user: LoginRequest, db_sess: Session
     ) -> Optional[Platform_Users]:
         """
         Authenticate user by its credentials.

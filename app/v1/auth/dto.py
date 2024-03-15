@@ -1,29 +1,27 @@
-# responsible to store DTOs (Data Transfer Object) between client
-# and server and internal business logic.
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
 
-class LoginRequestDTO(BaseModel):
+class LoginRequest(BaseModel):
     username: str
     password: str
 
 
-class LoginResponseDTO(BaseModel):
+class LoginResponse(BaseModel):
     access_token: str
 
 
-class RegisterRequestDTO(BaseModel):
+class RegisterRequest(BaseModel):
     username: str
     email: EmailStr
     password: str
 
 
-class RegisterResponseDTO(BaseModel):
+class RegisterResponse(BaseModel):
     username: str
 
 
-class TokenDataDTO(BaseModel):
+class TokenData(BaseModel):
     """JWT standard structure"""
 
     sub: str  # username

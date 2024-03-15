@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 from app.db import Session
 from app.db.models.user_mgmt import Sessions, Platform_Users
 from app.helpers.logger import logger
-from app.v1.auth.dto import RegisterRequestDTO
+from app.v1.auth.dto import RegisterRequest
 
 
 class UserDAO:
@@ -36,7 +36,7 @@ class UserDAO:
 
     @staticmethod
     def create_new_user(
-        new_user: RegisterRequestDTO, db_sess: Session
+        new_user: RegisterRequest, db_sess: Session
     ) -> Optional[Platform_Users]:
         """
         Create new user record.

@@ -5,8 +5,8 @@ from app.db import db
 from app.helpers.logger import logger
 from app.helpers.exceptions import credentials_exception
 from app.v1.auth.service import AuthService, SessionService
-from app.v1.auth.dao import SessionDAO, UserDAO
-from app.v1.auth.dto import TokenDataDTO
+from app.v1.auth.repository import SessionDAO, UserDAO
+from app.v1.auth.dto import TokenData
 
 
 class SecurityMiddleware:
@@ -52,7 +52,7 @@ class SecurityMiddleware:
 
         return sub_id, sub, session_id
 
-    def check_jwt_token(self, token: str) -> TokenDataDTO:
+    def check_jwt_token(self, token: str) -> TokenData:
         """
         Parse JWT token from client request.
 
@@ -64,7 +64,7 @@ class SecurityMiddleware:
         """
         return self.auth_service.verify_token(token=token)
 
-    def check_session(self, token: TokenDataDTO) -> None:
+    def check_session(self, token: TokenData) -> None:
         """
         Ensure session is exist and active.
 
