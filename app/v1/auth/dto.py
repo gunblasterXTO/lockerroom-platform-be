@@ -9,6 +9,8 @@ class LoginRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     access_token: str
+    token_type: str
+    expires_in: int
 
 
 class RegisterRequest(BaseModel):
@@ -19,6 +21,7 @@ class RegisterRequest(BaseModel):
 
 class RegisterResponse(BaseModel):
     username: str
+    email: str
 
 
 class TokenData(BaseModel):

@@ -25,4 +25,3 @@ class Settings:
     # authentication
     ALGO: Final = os.getenv("ALGORITHM", "")
     SECRET_KEY: Final = os.getenv("SECRET_KEY", "")
-    TOKEN_EXP_MINUTES: Final = 30

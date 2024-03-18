@@ -1,57 +1,47 @@
-# responsible to handle HTTP request and produces correspond response
-from fastapi import Depends, Request, status
+from fastapi import Request, status
 from fastapi.responses import JSONResponse, Response
 
-from app.db import db, Session
-from app.helpers.logger import logger
+from app.db import db
 from app.helpers.response import PostSuccessResponse
-from app.v1.auth.repository import SessionDAO, UserDAO
+from app.v1.auth.repository import AuthRepository
 from app.v1.auth.dto import LoginRequest, RegisterRequest
-from app.v1.auth.service import AuthService, SessionService
+from app.v1.auth.service import AuthService
+from app.v1.session import SessionRepository, SessionService
 
-session_service = SessionService(session_dao=SessionDAO())
-auth_service = AuthService(session_service=session_service, user_dao=UserDAO())
+auth_service = AuthService(
+    auth_repo=AuthRepository(db),
+    sess_service=SessionService(SessionRepository(db)),
+)
 
 
 class AuthViews:
-    async def registration(
-        self,
-        user: RegisterRequest,
-        db_sess: Session = Depends(db.get_session),
-    ) -> JSONResponse:
+    async def registration(self, user: RegisterRequest) -> JSONResponse:
         """
         Register new user if related information haven't been in the db.
         """
-        logger.debug(f"Registering new {user}...")
-        new_user = auth_service.register_new_user(user, db_sess).model_dump()
+        new_user = auth_service.register(user).model_dump()
         return JSONResponse(
             content=PostSuccessResponse(data=new_user).model_dump(),
             status_code=status.HTTP_201_CREATED,
         )
 
-    async def login(
-        self, user: LoginRequest, db_sess: Session = Depends(db.get_session)
-    ) -> JSONResponse:
+    async def login(self, user: LoginRequest) -> JSONResponse:
         """
         Login user if the related information is correct.
         """
-        logger.debug(f"Logging in {user}...")
-        login_creds = auth_service.login_user(user, db_sess).model_dump()
+        login_creds = auth_service.login(user).model_dump()
         return JSONResponse(
             content=PostSuccessResponse(data=login_creds).model_dump(),
             status_code=status.HTTP_200_OK,
         )
 
     async def logout(
-        self, request: Request, db_sess: Session = Depends(db.get_session)
+        self,
+        request: Request,
     ) -> Response:
         """
         Logout user, blacklist session id.
         """
-        username = request.state.username
         session_id = request.state.session_id
-        logger.debug(f"Logging out {username} - {session_id}...")
-        auth_service.logout_user(
-            username=username, session=session_id, db_sess=db_sess
-        )
+        auth_service.logout(session_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)

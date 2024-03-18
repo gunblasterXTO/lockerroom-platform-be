@@ -3,16 +3,18 @@ from typing import Tuple, Optional
 from app.core.constants import ExcludeAuthMiddlewarePath
 from app.db import db
 from app.helpers.logger import logger
-from app.helpers.exceptions import credentials_exception
-from app.v1.auth.service import AuthService, SessionService
-from app.v1.auth.repository import SessionDAO, UserDAO
+from app.helpers.exceptions import UnauthorizedClientRequest
+from app.v1.auth import AuthRepository, AuthService
+from app.v1.auth.const import LoginErrorMsg
 from app.v1.auth.dto import TokenData
+from app.v1.session import SessionRepository, SessionService
 
 
 class SecurityMiddleware:
     def __init__(self) -> None:
         self.auth_service = AuthService(
-            session_service=SessionService(SessionDAO()), user_dao=UserDAO()
+            auth_repo=AuthRepository(db),
+            sess_service=SessionService(SessionRepository(db)),
         )
 
     def authenticate_user(
@@ -40,7 +42,7 @@ class SecurityMiddleware:
 
         if not auth_header:
             logger.debug("No authorization header provided")
-            raise credentials_exception
+            raise UnauthorizedClientRequest(LoginErrorMsg.UNAUTHORIZED_USER)
 
         token = auth_header.replace("Bearer ", "")
         token_detail = self.check_jwt_token(token)
@@ -55,12 +57,6 @@ class SecurityMiddleware:
     def check_jwt_token(self, token: str) -> TokenData:
         """
         Parse JWT token from client request.
-
-        Args:
-            - token
-
-        Return:
-            - token_detail
         """
         return self.auth_service.verify_token(token=token)
 
@@ -71,5 +67,4 @@ class SecurityMiddleware:
         Args:
             - token
         """
-        with db.session() as db_sess:
-            self.auth_service.validate_session(token=token, db_sess=db_sess)
+        self.auth_service.validate_session(token)

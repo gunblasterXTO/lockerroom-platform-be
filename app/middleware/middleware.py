@@ -1,12 +1,16 @@
 import time
 
-from fastapi import HTTPException, Request, Response
+from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import (
     BaseHTTPMiddleware,
     RequestResponseEndpoint,
 )
 
+from app.helpers.exceptions import (
+    InternalServerError,
+    UnauthorizedClientRequest,
+)
 from app.helpers.logger import logger
 from app.helpers.response import BaseFailResponse
 from app.middleware.logger import LogMiddleware
@@ -14,7 +18,7 @@ from app.middleware.security import SecurityMiddleware
 
 
 class Middlewares(BaseHTTPMiddleware):
-    LOG = LogMiddleware(logger=logger)
+    LOG = LogMiddleware(logger)
     SECURITY = SecurityMiddleware()
 
     async def dispatch(
@@ -31,15 +35,21 @@ class Middlewares(BaseHTTPMiddleware):
         await Middlewares.LOG.record_req(request=request)
 
         auth_header = request.headers.get("Authorization", "")
+
         try:
             sub_id, sub, session_id = Middlewares.SECURITY.authenticate_user(
                 auth_header=auth_header, path=request.url.path
             )
-        except HTTPException as exc:
+        except UnauthorizedClientRequest as exc:
             return JSONResponse(
-                content=BaseFailResponse(detail=exc.detail).model_dump(),
-                status_code=exc.status_code,
-                headers=exc.headers,
+                content=BaseFailResponse(detail=exc.message).model_dump(),
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        except InternalServerError as exc:
+            return JSONResponse(
+                content=BaseFailResponse(detail=exc.message).model_dump(),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         if any([sub_id, sub, session_id]):

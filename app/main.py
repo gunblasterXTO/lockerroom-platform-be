@@ -5,7 +5,13 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.settings import Settings
-from app.db.session import Database
+from app.db.sql import Database
+from app.helpers.exceptions import (
+    BadClientReqeust,
+    ConflictClientRequest,
+    InternalServerError,
+    UnauthorizedClientRequest,
+)
 from app.helpers.response import BaseFailResponse
 from app.middleware import Middlewares
 from app.v1 import v1_router
@@ -44,4 +50,45 @@ async def validation_exception_handler(
     return JSONResponse(
         content=BaseFailResponse(detail="Validation error").model_dump(),
         status_code=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+@app.exception_handler(BadClientReqeust)
+async def bad_request_handler(
+    request: Request, exc: BadClientReqeust
+) -> JSONResponse:
+    return JSONResponse(
+        content=BaseFailResponse(detail=exc.message).model_dump(),
+        status_code=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+@app.exception_handler(UnauthorizedClientRequest)
+async def unauthorized_request_handler(
+    request: Request, exc: UnauthorizedClientRequest
+) -> JSONResponse:
+    return JSONResponse(
+        content=BaseFailResponse(detail=exc.message).model_dump(),
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+@app.exception_handler(ConflictClientRequest)
+async def conflict_request_handler(
+    request: Request, exc: ConflictClientRequest
+) -> JSONResponse:
+    return JSONResponse(
+        content=BaseFailResponse(detail=exc.message).model_dump(),
+        status_code=status.HTTP_409_CONFLICT,
+    )
+
+
+@app.exception_handler(InternalServerError)
+async def internal_server_error_handler(
+    request: Request, exc: InternalServerError
+) -> JSONResponse:
+    return JSONResponse(
+        content=BaseFailResponse(detail=exc.message).model_dump(),
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
