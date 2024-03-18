@@ -7,7 +7,10 @@ from app.db.models.util import ModelsUtil
 class Platform_Users(Base):
     id = Column(Integer, primary_key=True, index=True)
     hash_id = Column(
-        String(256), nullable=False, default=ModelsUtil.generate_hash
+        String(256),
+        nullable=False,
+        default=ModelsUtil.generate_hash,
+        unique=True,
     )
     username = Column(String(128), nullable=False, unique=True)
     email = Column(String(128), nullable=False, unique=True)
@@ -22,6 +25,6 @@ class Sessions(Base):
         index=True,
         default=ModelsUtil.generate_hash,
     )
-    username = Column(
-        String(256), ForeignKey("platform_users.username"), nullable=False
+    platform_user_id = Column(
+        String(256), ForeignKey("platform_users.hash_id"), nullable=False
     )
