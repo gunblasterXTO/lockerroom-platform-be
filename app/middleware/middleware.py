@@ -14,12 +14,14 @@ from app.helpers.exceptions import (
 from app.helpers.logger import logger
 from app.helpers.response import BaseFailResponse
 from app.middleware.logger import LogMiddleware
+from app.middleware.monitoring import MonitoringMiddleware
 from app.middleware.security import SecurityMiddleware
 
 
 class Middlewares(BaseHTTPMiddleware):
     LOG = LogMiddleware(logger)
     SECURITY = SecurityMiddleware()
+    MONITOR = MonitoringMiddleware()
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
@@ -31,25 +33,31 @@ class Middlewares(BaseHTTPMiddleware):
             - request: client request detail including url, json body, etc.
             - call_next: to call the endpoint/next process
         """
-        start_time = time.time()
+        start_time = time.perf_counter()
         await Middlewares.LOG.record_req(request=request)
 
         auth_header = request.headers.get("Authorization", "")
+        endpoint = request.url.path
+        method = request.method
 
         try:
             sub_id, sub, session_id = Middlewares.SECURITY.authenticate_user(
-                auth_header=auth_header, path=request.url.path
+                auth_header=auth_header, path=endpoint
             )
         except UnauthorizedClientRequest as exc:
+            http_status = status.HTTP_401_UNAUTHORIZED
+            Middlewares.MONITOR.record_count(endpoint, method, http_status)
             return JSONResponse(
                 content=BaseFailResponse(detail=exc.message).model_dump(),
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=http_status,
                 headers={"WWW-Authenticate": "Bearer"},
             )
         except InternalServerError as exc:
+            http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+            Middlewares.MONITOR.record_count(endpoint, method, http_status)
             return JSONResponse(
                 content=BaseFailResponse(detail=exc.message).model_dump(),
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=http_status,
             )
 
         if any([sub_id, sub, session_id]):
@@ -58,8 +66,12 @@ class Middlewares(BaseHTTPMiddleware):
             request.state.user_id = sub_id
 
         response = await call_next(request)
+        Middlewares.MONITOR.record_count(
+            endpoint, method, response.status_code
+        )
 
-        total_time = time.time() - start_time
-        Middlewares.LOG.record_resp(response=response, time=total_time)
+        total_time = time.perf_counter() - start_time
+        Middlewares.MONITOR.record_histo(method, endpoint, total_time)
+        Middlewares.LOG.record_resp(response, total_time)
 
         return response
