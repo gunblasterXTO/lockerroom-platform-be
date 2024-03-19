@@ -1,6 +1,4 @@
 # db session and table schema for repository interaction purposes
-from sqlalchemy.orm import Session  # noqa
-
-from .session import Database
+from .sql import Database
 
 db = Database()

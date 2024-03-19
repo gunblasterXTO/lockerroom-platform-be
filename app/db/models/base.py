@@ -7,7 +7,7 @@ from sqlalchemy.orm import as_declarative
 
 @as_declarative()
 class Base:
-    is_active = Column(SmallInteger, default=1)  # 1: active, 0: inactive
+    is_active = Column(SmallInteger, default=1, nullable=False)
     create_date = Column(DateTime, default=datetime.now, nullable=False)
     update_date = Column(
         DateTime, default=datetime.now, onupdate=datetime.now, nullable=False

@@ -1,7 +1,20 @@
-from sqlalchemy import Column, ForeignKey, Integer, SmallInteger, String
+from sqlalchemy import Column, ForeignKey, Integer, String
 
 from app.db.models.base import Base
 from app.db.models.util import ModelsUtil
+
+
+class Platform_Users(Base):
+    id = Column(Integer, primary_key=True, index=True)
+    hash_id = Column(
+        String(256),
+        nullable=False,
+        default=ModelsUtil.generate_hash,
+        unique=True,
+    )
+    username = Column(String(128), nullable=False, unique=True)
+    email = Column(String(128), nullable=False, unique=True)
+    pass_hash = Column(String(128), nullable=False)
 
 
 class Sessions(Base):
@@ -12,22 +25,6 @@ class Sessions(Base):
         index=True,
         default=ModelsUtil.generate_hash,
     )
-    username = Column(
-        String(256), ForeignKey("users.username"), nullable=False
+    platform_user_id = Column(
+        String(256), ForeignKey("platform_users.hash_id"), nullable=False
     )
-
-
-class Users(Base):
-    id = Column(Integer, primary_key=True, index=True)
-    id_hash = Column(
-        String(256), nullable=False, default=ModelsUtil.generate_hash
-    )
-    username = Column(String(256), nullable=False)
-    email = Column(String(128), nullable=False)
-    pass_hash = Column(String(128), nullable=False)
-    id_role = Column(SmallInteger, ForeignKey("roles.id"), nullable=True)
-
-
-class Roles(Base):
-    id = Column(SmallInteger, primary_key=True, index=True)
-    name = Column(String(64), nullable=False)
