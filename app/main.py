@@ -1,6 +1,7 @@
 from fastapi import FastAPI, status, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
+from prometheus_client import make_asgi_app
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -20,6 +21,9 @@ from app.v1 import v1_router
 app = FastAPI(title=Settings.PROJECT_NAME, version=Settings.VERSION)
 app.add_middleware(Middlewares)
 app.include_router(v1_router)
+
+metric_app = make_asgi_app()
+app.mount("/metrics", metric_app)
 
 
 @app.get("/health/server", include_in_schema=False)

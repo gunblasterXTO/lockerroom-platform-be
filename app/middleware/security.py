@@ -37,6 +37,7 @@ class SecurityMiddleware:
             or ExcludeAuthMiddlewarePath.LOGIN.value in path
             or ExcludeAuthMiddlewarePath.DOCS.value in path
             or ExcludeAuthMiddlewarePath.HEALTH_CHECK.value in path
+            or ExcludeAuthMiddlewarePath.METRICS.value in path
         ):
             return sub_id, sub, session_id
 
