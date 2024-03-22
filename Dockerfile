@@ -57,7 +57,7 @@ RUN \
     && apt-get autoremove -y \
     && apt-get clean -y
 
-COPY ./main.py ./sqlite.db ./
+COPY ./main.py ./
 COPY ./app app
 
 # Expose the port that the application listens on.
