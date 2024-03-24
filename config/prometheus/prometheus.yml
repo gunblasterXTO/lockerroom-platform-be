@@ -10,9 +10,12 @@ scrape_configs:
     follow_redirects: true
     enable_http2: true
     static_configs:
-    - targets:
-      - localhost:9090
+    - targets: ["localhost:9090"]
 
   - job_name: "lockerroom-platform-be"
     static_configs:
       - targets: ["backend:8000"]
+
+  - job_name: cadvisor
+    static_configs:
+      - targets: ["cadvisor:8080"]
